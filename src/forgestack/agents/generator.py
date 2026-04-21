@@ -31,6 +31,12 @@ class GeneratorAgent(BaseAgent):
     - Reading relevant code files via MCP tools
     """
 
+    # Class-level defaults so the instance is usable even if a caller
+    # constructs it without going through __init__ (e.g. in tests via
+    # __new__). These are always overwritten in __init__.
+    mcp_client: MCPClient | None = None
+    _code_context: str = ""
+
     def __init__(
         self,
         config: ForgeStackConfig,
@@ -49,7 +55,7 @@ class GeneratorAgent(BaseAgent):
             prompt_template=prompt_template,
         )
         self.mcp_client = mcp_client
-        self._code_context: str = ""  # Temporary storage for code context
+        self._code_context = ""
 
     @property
     def role(self) -> str:
