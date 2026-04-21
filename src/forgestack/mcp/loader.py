@@ -58,9 +58,9 @@ class MCPLoader:
             return {}
 
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+        except (OSError, json.JSONDecodeError) as e:
             # Log warning but don't fail
             return {"_error": str(e)}
 
@@ -90,16 +90,19 @@ class MCPLoader:
                 if server_type != "stdio" or not command:
                     continue
 
-                servers.append({
-                    "name": name,
-                    "command": command,
-                    "args": server_config.get("args", []),
-                    "env": server_config.get("env", {}),
-                })
+                servers.append(
+                    {
+                        "name": name,
+                        "command": command,
+                        "args": server_config.get("args", []),
+                        "env": server_config.get("env", {}),
+                    }
+                )
         elif "servers" in config:
             # Alternative format - filter to only include servers with command
             servers = [
-                s for s in config["servers"]
+                s
+                for s in config["servers"]
                 if s.get("command") and isinstance(s.get("command"), str)
             ]
 

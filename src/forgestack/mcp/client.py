@@ -1,13 +1,12 @@
 """MCP client for interacting with MCP servers."""
 
 import asyncio
-import io
 import logging
 import os
 import re
 import sys
 import warnings
-from contextlib import AsyncExitStack, redirect_stderr
+from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any
 
@@ -50,11 +49,14 @@ def _suppress_async_cleanup_errors() -> None:
         if exc is not None:
             error_str = str(exc)
             # Suppress cancel scope and async generator errors from MCP cleanup
-            if any(pattern in error_str for pattern in [
-                "cancel scope",
-                "stdio_client",
-                "different task",
-            ]):
+            if any(
+                pattern in error_str
+                for pattern in [
+                    "cancel scope",
+                    "stdio_client",
+                    "different task",
+                ]
+            ):
                 return  # Silently ignore
         # Pass through other errors
         if original_hook is not None:
@@ -74,11 +76,14 @@ def _suppress_async_cleanup_errors() -> None:
         # Suppress known MCP/anyio cleanup errors
         if exc_value is not None:
             error_str = str(exc_value)
-            if any(pattern in error_str for pattern in [
-                "cancel scope",
-                "stdio_client",
-                "different task",
-            ]):
+            if any(
+                pattern in error_str
+                for pattern in [
+                    "cancel scope",
+                    "stdio_client",
+                    "different task",
+                ]
+            ):
                 return  # Silently ignore
         original_excepthook(exc_type, exc_value, exc_tb)
 
@@ -353,8 +358,7 @@ class MCPClient:
             del self._connections[server_name]
             # Remove tools from this server
             self._available_tools = [
-                tool for tool in self._available_tools
-                if tool.get("server") != server_name
+                tool for tool in self._available_tools if tool.get("server") != server_name
             ]
             logger.info(f"Removed disconnected MCP server '{server_name}'")
 
@@ -395,7 +399,7 @@ class MCPClient:
                                 "content": "\n".join(content_items),
                             }
                         return {"status": "success", "result": str(result)}
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         logger.warning(
                             f"Tool '{tool_name}' timed out on server '{connection.name}'"
                         )
@@ -433,7 +437,7 @@ class MCPClient:
             try:
                 # Use wait_for with timeout to prevent hanging
                 await asyncio.wait_for(self._exit_stack.aclose(), timeout=5.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.debug("MCP shutdown timed out, forcing cleanup")
             except RuntimeError as e:
                 # Suppress cancel scope errors from async cleanup race conditions

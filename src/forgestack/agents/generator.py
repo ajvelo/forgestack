@@ -122,14 +122,14 @@ class GeneratorAgent(BaseAgent):
             patterns.extend(["bloc/", "cubit/", "_bloc.dart", "_cubit.dart"])
 
         # Extract specific file mentions from task
-        file_mentions = re.findall(r'[\w_/]+\.dart', task_lower)
+        file_mentions = re.findall(r"[\w_/]+\.dart", task_lower)
         patterns.extend(file_mentions)
 
         # Parse codebase summary for actual file paths
         summary_lines = context.codebase_summary.split("\n")
         for line in summary_lines:
             # Look for .dart files in the summary
-            dart_files = re.findall(r'([\w_/]+\.dart)', line)
+            dart_files = re.findall(r"([\w_/]+\.dart)", line)
             for dart_file in dart_files:
                 for pattern in patterns:
                     if pattern in dart_file.lower():
@@ -168,10 +168,7 @@ class GeneratorAgent(BaseAgent):
         contents: list[str] = []
         for file_path in files_to_read[:3]:  # Read up to 3 files
             try:
-                result = await self.mcp_client.invoke_tool(
-                    "file_read",
-                    {"path": file_path}
-                )
+                result = await self.mcp_client.invoke_tool("file_read", {"path": file_path})
                 if result.get("status") == "success":
                     content = result.get("content", "")
                     # Truncate very long files
@@ -220,9 +217,7 @@ class GeneratorAgent(BaseAgent):
                 f"## Previous Proposal (Round {context.round_number - 1})\n\n"
                 f"{context.previous_output}"
             )
-            parts.append(
-                f"## Critic Feedback to Address\n\n{context.feedback}"
-            )
+            parts.append(f"## Critic Feedback to Address\n\n{context.feedback}")
             parts.append(
                 "\n**Instructions:** Please revise your proposal based on the "
                 "feedback above. Address each point raised by the Critic. "
@@ -251,6 +246,6 @@ class GeneratorAgent(BaseAgent):
             logger.debug("Gathering code context for Generator...")
             self._code_context = await self._read_relevant_files(context)
             if self._code_context:
-                logger.info(f"Loaded code context for Generator")
+                logger.info("Loaded code context for Generator")
 
         return await self.execute(context)

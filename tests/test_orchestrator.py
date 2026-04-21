@@ -1,21 +1,22 @@
 """Tests for ForgeStack orchestrator."""
 
-import pytest
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
 
-from forgestack.orchestrator.critique_round import CritiqueRound, CritiqueResult, RoundResult
-from forgestack.orchestrator.engine import ForgeStackEngine, SessionResult
+import pytest
+
 from forgestack.agents.base import AgentContext, AgentResponse
 from forgestack.config import (
-    ForgeStackConfig,
     AgentConfig,
     AgentsConfig,
-    OrchestratorConfig,
     CodebaseConfig,
+    ForgeStackConfig,
+    OrchestratorConfig,
     PersistenceConfig,
 )
+from forgestack.orchestrator.critique_round import CritiqueResult, CritiqueRound, RoundResult
+from forgestack.orchestrator.engine import SessionResult
 
 
 @pytest.fixture
@@ -111,7 +112,7 @@ class TestCritiqueRound:
         mock_critic.get_normalized_score = MagicMock(return_value=0.95)
 
         # Create critique round with mocked console
-        with patch('forgestack.orchestrator.critique_round.Console'):
+        with patch("forgestack.orchestrator.critique_round.Console"):
             critique_round = CritiqueRound(
                 config=mock_config,
                 generator=mock_generator,
@@ -145,7 +146,7 @@ class TestCritiqueRound:
         )
         mock_critic.get_normalized_score = MagicMock(side_effect=[0.70, 0.93])
 
-        with patch('forgestack.orchestrator.critique_round.Console'):
+        with patch("forgestack.orchestrator.critique_round.Console"):
             critique_round = CritiqueRound(
                 config=mock_config,
                 generator=mock_generator,
@@ -172,7 +173,7 @@ class TestCritiqueRound:
         )
         mock_critic.get_normalized_score = MagicMock(return_value=0.80)
 
-        with patch('forgestack.orchestrator.critique_round.Console'):
+        with patch("forgestack.orchestrator.critique_round.Console"):
             critique_round = CritiqueRound(
                 config=mock_config,
                 generator=mock_generator,

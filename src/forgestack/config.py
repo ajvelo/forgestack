@@ -20,7 +20,7 @@ class AnthropicConfig(BaseModel):
             raise ValueError(
                 f"Environment variable '{self.env_var}' not set. "
                 f"Please set it in your shell profile (e.g., ~/.zshrc):\n"
-                f"  export {self.env_var}=\"sk-ant-xxxxx\""
+                f'  export {self.env_var}="sk-ant-xxxxx"'
             )
         return api_key
 
@@ -104,9 +104,7 @@ class CodebaseConfig(BaseModel):
         """Get absolute path for a repository."""
         if repo_key not in self.repos:
             available = ", ".join(self.repos.keys())
-            raise ValueError(
-                f"Unknown repository '{repo_key}'. Available: {available}"
-            )
+            raise ValueError(f"Unknown repository '{repo_key}'. Available: {available}")
         return Path(self.repos[repo_key]).expanduser().resolve()
 
     def list_repos(self) -> list[str]:

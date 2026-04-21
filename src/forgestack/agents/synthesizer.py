@@ -45,14 +45,10 @@ class SynthesizerAgent(BaseAgent):
             parts.append(f"## Design System Reference\n\n{context.design_system_summary}")
 
         if context.previous_output:
-            parts.append(
-                f"## Final Generator Proposal\n\n{context.previous_output}"
-            )
+            parts.append(f"## Final Generator Proposal\n\n{context.previous_output}")
 
         if context.feedback:
-            parts.append(
-                f"## Critic Evaluation & Feedback\n\n{context.feedback}"
-            )
+            parts.append(f"## Critic Evaluation & Feedback\n\n{context.feedback}")
 
         parts.append(
             "\n**Instructions:** Please synthesize the above into a final, "

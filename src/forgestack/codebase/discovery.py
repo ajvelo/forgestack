@@ -3,7 +3,6 @@
 import asyncio
 import json
 import logging
-import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -166,11 +165,17 @@ class RepoDiscovery:
             return self._cache["repos"]
 
         # Query GitHub for repos
-        result = await self._run_gh_command([
-            "repo", "list", self.github_org,
-            "--json", "name,description,url,primaryLanguage,repositoryTopics",
-            "--limit", str(limit),
-        ])
+        result = await self._run_gh_command(
+            [
+                "repo",
+                "list",
+                self.github_org,
+                "--json",
+                "name,description,url,primaryLanguage,repositoryTopics",
+                "--limit",
+                str(limit),
+            ]
+        )
 
         if not result or not isinstance(result, list):
             return []
@@ -181,14 +186,16 @@ class RepoDiscovery:
             language = repo_data.get("primaryLanguage", {})
             topics = repo_data.get("repositoryTopics", {}).get("nodes", [])
 
-            repos.append(RepoInfo(
-                name=repo_data.get("name", ""),
-                description=repo_data.get("description", "") or "",
-                url=repo_data.get("url", ""),
-                repo_type=repo_type,
-                language=language.get("name", "") if language else "",
-                topics=[t.get("topic", {}).get("name", "") for t in topics],
-            ))
+            repos.append(
+                RepoInfo(
+                    name=repo_data.get("name", ""),
+                    description=repo_data.get("description", "") or "",
+                    url=repo_data.get("url", ""),
+                    repo_type=repo_type,
+                    language=language.get("name", "") if language else "",
+                    topics=[t.get("topic", {}).get("name", "") for t in topics],
+                )
+            )
 
         # Update cache
         self._cache["repos"] = repos
@@ -271,9 +278,7 @@ class RepoDiscovery:
         for repo in backend_repos[:3]:  # Limit to top 3 backend repos
             # Note: In a full implementation, we would clone/fetch these repos
             # For now, we just record their names as potential context sources
-            context.service_patterns.append(
-                f"Backend service: {repo.name} - {repo.description}"
-            )
+            context.service_patterns.append(f"Backend service: {repo.name} - {repo.description}")
 
         return context
 
@@ -356,8 +361,7 @@ class RepoDiscovery:
         # Look for design system repos
         all_repos = await self.discover_org_repos()
         design_repos = [
-            r for r in all_repos
-            if "design" in r.name.lower() or "ui-kit" in r.name.lower()
+            r for r in all_repos if "design" in r.name.lower() or "ui-kit" in r.name.lower()
         ]
         if design_repos:
             context.design_system_context = (

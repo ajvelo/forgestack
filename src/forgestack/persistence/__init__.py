@@ -1,7 +1,7 @@
 """ForgeStack persistence module."""
 
 from forgestack.persistence.database import SessionDatabase
-from forgestack.persistence.models import SessionRecord, AgentResponseRecord
+from forgestack.persistence.models import AgentResponseRecord, SessionRecord
 
 __all__ = [
     "SessionDatabase",

@@ -33,7 +33,7 @@ class CodebaseReader:
             return f"[File too large: {path.stat().st_size} bytes]"
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 if max_lines:
                     lines = []
                     for i, line in enumerate(f):
@@ -184,7 +184,7 @@ class CodebaseReader:
         Returns:
             List of dictionaries with file, line number, and content
         """
-        results = []
+        results: list[dict[str, Any]] = []
         files = self.find_files(repo_path, file_pattern)
 
         for file_path in files:
@@ -198,11 +198,13 @@ class CodebaseReader:
             lines = content.split("\n")
             for line_num, line in enumerate(lines, 1):
                 if search_term.lower() in line.lower():
-                    results.append({
-                        "file": str(file_path.relative_to(repo_path)),
-                        "line": line_num,
-                        "content": line.strip()[:100],
-                    })
+                    results.append(
+                        {
+                            "file": str(file_path.relative_to(repo_path)),
+                            "line": line_num,
+                            "content": line.strip()[:100],
+                        }
+                    )
                     if len(results) >= max_results:
                         break
 

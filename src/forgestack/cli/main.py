@@ -1,9 +1,9 @@
 """ForgeStack CLI - Main entry point."""
 
 import asyncio
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Optional
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 
@@ -76,21 +76,23 @@ def main(
         console.print(Panel(cmd_table, title="[bold]Commands[/bold]", border_style="dim"))
 
         # Examples
-        console.print(Panel(
-            '[dim]$[/dim] forgestack run -r app -t exploration\n'
-            '[dim]  (loads from prompts/.prompt.txt)[/dim]\n'
-            '[dim]$[/dim] forgestack run -r app -t bugfix "Fix login crash"\n'
-            '[dim]$[/dim] forgestack apply output/forgestack-abc123.md\n'
-            '[dim]$[/dim] forgestack repos',
-            title="[bold]Examples[/bold]",
-            border_style="dim",
-        ))
+        console.print(
+            Panel(
+                "[dim]$[/dim] forgestack run -r app -t exploration\n"
+                "[dim]  (loads from prompts/.prompt.txt)[/dim]\n"
+                '[dim]$[/dim] forgestack run -r app -t bugfix "Fix login crash"\n'
+                "[dim]$[/dim] forgestack apply output/forgestack-abc123.md\n"
+                "[dim]$[/dim] forgestack repos",
+                title="[bold]Examples[/bold]",
+                border_style="dim",
+            )
+        )
 
         console.print("[dim]Run 'forgestack <command> --help' for details[/dim]")
         raise typer.Exit()
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     """Supported task types."""
 
     CODE_IMPROVEMENT = "code_improvement"  # Refactoring, cleanup, optimization
@@ -100,7 +102,7 @@ class TaskType(str, Enum):
     EXPLORATION = "exploration"  # Analysis and discovery
 
 
-class ExportFormat(str, Enum):
+class ExportFormat(StrEnum):
     """Supported export formats."""
 
     MARKDOWN = "markdown"
@@ -112,25 +114,28 @@ def run(
     repo: Annotated[
         str,
         typer.Option(
-            "--repo", "-r",
+            "--repo",
+            "-r",
             help="Repository key from config.yaml (use 'forgestack repos' to list)",
         ),
     ],
     task: Annotated[
         TaskType,
         typer.Option(
-            "--task", "-t",
+            "--task",
+            "-t",
             help="Task type: code_improvement|feature|bugfix|architecture|exploration",
         ),
     ],
     description: Annotated[
-        Optional[str],
+        str | None,
         typer.Argument(help="Natural language description (or use --prompt-file)"),
     ] = None,
     prompt_file: Annotated[
         str,
         typer.Option(
-            "--prompt-file", "-p",
+            "--prompt-file",
+            "-p",
             help="Load description from file in prompts/ directory",
         ),
     ] = ".prompt.txt",
@@ -167,7 +172,7 @@ def run(
             console.print(f"[red]Error:[/red] {e}")
             console.print(
                 f"\n[yellow]Tip:[/yellow] Create the file or provide a description:\n"
-                f"  forgestack run -r {repo} -t {task.value} \"Your description here\""
+                f'  forgestack run -r {repo} -t {task.value} "Your description here"'
             )
             raise typer.Exit(1)
         except ValueError as e:
@@ -182,13 +187,13 @@ def run(
         raise typer.Exit(1)
 
     if not repo_path.exists():
-        console.print(
-            f"[red]Error:[/red] Repository path does not exist: {repo_path}"
-        )
+        console.print(f"[red]Error:[/red] Repository path does not exist: {repo_path}")
         raise typer.Exit(1)
 
     # Truncate description for display if too long
-    display_desc = task_description[:200] + "..." if len(task_description) > 200 else task_description
+    display_desc = (
+        task_description[:200] + "..." if len(task_description) > 200 else task_description
+    )
 
     console.print(
         Panel(
@@ -235,12 +240,8 @@ def run(
         console.print(f"[dim]Run 'forgestack apply {output_path}' to apply changes[/dim]")
 
         # Show session ID for future reference
-        console.print(
-            f"\n[dim]Session ID: {result.session_id}[/dim]"
-        )
-        console.print(
-            f"[dim]Consensus Score: {result.final_score:.2f}[/dim]"
-        )
+        console.print(f"\n[dim]Session ID: {result.session_id}[/dim]")
+        console.print(f"[dim]Consensus Score: {result.final_score:.2f}[/dim]")
 
     except Exception as e:
         console.print(f"[red]Error during session:[/red] {e}")
@@ -256,7 +257,7 @@ def history(
         typer.Option("--last", "-n", help="Show last N sessions"),
     ] = 10,
     repo: Annotated[
-        Optional[str],
+        str | None,
         typer.Option("--repo", "-r", help="Filter by repository"),
     ] = None,
 ) -> None:
@@ -307,7 +308,7 @@ def export_session(
         typer.Option("--format", "-f", help="Export format"),
     ] = ExportFormat.MARKDOWN,
     output: Annotated[
-        Optional[str],
+        str | None,
         typer.Option("--output", "-o", help="Output file path"),
     ] = None,
 ) -> None:
@@ -455,11 +456,13 @@ def _parse_code_blocks(content: str) -> list[dict[str, str]]:
     pattern1 = r"```(\w+):([^\n]+)\n(.*?)```"
     for match in re.finditer(pattern1, content, re.DOTALL):
         lang, file_path, code = match.groups()
-        blocks.append({
-            "language": lang,
-            "file_path": file_path.strip(),
-            "code": code.strip(),
-        })
+        blocks.append(
+            {
+                "language": lang,
+                "file_path": file_path.strip(),
+                "code": code.strip(),
+            }
+        )
 
     # Pattern 2a: **File**: `path` (Claude's natural format - colon outside bold)
     # **File**: `lib/src/foo.dart`
@@ -470,11 +473,13 @@ def _parse_code_blocks(content: str) -> list[dict[str, str]]:
         file_path, lang, code = match.groups()
         # Avoid duplicates
         if not any(b["file_path"] == file_path.strip() for b in blocks):
-            blocks.append({
-                "language": lang,
-                "file_path": file_path.strip(),
-                "code": code.strip(),
-            })
+            blocks.append(
+                {
+                    "language": lang,
+                    "file_path": file_path.strip(),
+                    "code": code.strip(),
+                }
+            )
 
     # Pattern 2b: **File:** `path` (colon inside bold - legacy format)
     # **File:** `lib/src/foo.dart`
@@ -483,22 +488,26 @@ def _parse_code_blocks(content: str) -> list[dict[str, str]]:
     for match in re.finditer(pattern2b, content, re.DOTALL):
         file_path, lang, code = match.groups()
         if not any(b["file_path"] == file_path.strip() for b in blocks):
-            blocks.append({
-                "language": lang,
-                "file_path": file_path.strip(),
-                "code": code.strip(),
-            })
+            blocks.append(
+                {
+                    "language": lang,
+                    "file_path": file_path.strip(),
+                    "code": code.strip(),
+                }
+            )
 
     # Pattern 3: // File: path/to/file.dart comment at start of code block
     pattern3 = r"```(\w+)\n//\s*[Ff]ile:\s*([^\n]+)\n(.*?)```"
     for match in re.finditer(pattern3, content, re.DOTALL):
         lang, file_path, code = match.groups()
         if not any(b["file_path"] == file_path.strip() for b in blocks):
-            blocks.append({
-                "language": lang,
-                "file_path": file_path.strip(),
-                "code": code.strip(),
-            })
+            blocks.append(
+                {
+                    "language": lang,
+                    "file_path": file_path.strip(),
+                    "code": code.strip(),
+                }
+            )
 
     # Pattern 4: Numbered steps with file path
     # ### Step N: Description
@@ -507,11 +516,13 @@ def _parse_code_blocks(content: str) -> list[dict[str, str]]:
     for match in re.finditer(pattern4, content, re.DOTALL):
         file_path, lang, code = match.groups()
         if not any(b["file_path"] == file_path.strip() for b in blocks):
-            blocks.append({
-                "language": lang,
-                "file_path": file_path.strip(),
-                "code": code.strip(),
-            })
+            blocks.append(
+                {
+                    "language": lang,
+                    "file_path": file_path.strip(),
+                    "code": code.strip(),
+                }
+            )
 
     return blocks
 
@@ -544,6 +555,7 @@ def apply(
 
     # Parse metadata
     import re
+
     metadata_match = re.search(
         r"<!-- FORGESTACK_METADATA\n(.*?)\n-->",
         content,
@@ -571,7 +583,9 @@ def apply(
         try:
             repo_path = config.codebase.get_repo_path(repo_key)
         except ValueError:
-            console.print(f"[yellow]Warning:[/yellow] Unknown repo '{repo_key}', using current directory")
+            console.print(
+                f"[yellow]Warning:[/yellow] Unknown repo '{repo_key}', using current directory"
+            )
             repo_path = Path.cwd()
     else:
         repo_path = Path.cwd()
@@ -581,7 +595,9 @@ def apply(
 
     if not code_blocks:
         console.print("[yellow]No code blocks with file paths found in output.[/yellow]")
-        console.print("[dim]Tip: The synthesizer output should include code blocks with file paths.[/dim]")
+        console.print(
+            "[dim]Tip: The synthesizer output should include code blocks with file paths.[/dim]"
+        )
         console.print("[dim]Supported formats:[/dim]")
         console.print("[dim]  **File**: `lib/src/file.dart`[/dim]")
         console.print("[dim]  ```dart[/dim]")

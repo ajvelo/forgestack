@@ -66,9 +66,7 @@ class CriticAgent(BaseAgent):
                 f"{context.previous_output}"
             )
         else:
-            parts.append(
-                "## Error\n\nNo proposal provided to evaluate."
-            )
+            parts.append("## Error\n\nNo proposal provided to evaluate.")
 
         # Different instructions for first round vs revision rounds
         if context.evaluation_history:

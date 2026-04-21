@@ -118,9 +118,7 @@ class BaseAgent(ABC):
             max_tokens=self.agent_config.max_tokens,
             temperature=self.agent_config.temperature,
             system=system_prompt,
-            messages=[
-                {"role": "user", "content": user_message}
-            ],
+            messages=[{"role": "user", "content": user_message}],
         )
 
         # Extract content

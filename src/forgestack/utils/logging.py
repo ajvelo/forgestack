@@ -3,11 +3,9 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 from rich.logging import RichHandler
-
 
 # Default log format
 LOG_FORMAT = "%(message)s"
@@ -19,7 +17,7 @@ console = Console()
 
 def setup_logging(
     level: int = logging.INFO,
-    log_file: Optional[Path] = None,
+    log_file: Path | None = None,
     rich_output: bool = True,
 ) -> None:
     """Set up logging configuration.
@@ -32,6 +30,7 @@ def setup_logging(
     handlers: list[logging.Handler] = []
 
     # Console handler
+    console_handler: logging.Handler
     if rich_output:
         console_handler = RichHandler(
             console=console,
@@ -41,9 +40,7 @@ def setup_logging(
         )
     else:
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(
-            logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
-        )
+        console_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT))
 
     console_handler.setLevel(level)
     handlers.append(console_handler)
@@ -53,9 +50,7 @@ def setup_logging(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         file_handler.setLevel(level)
         handlers.append(file_handler)
@@ -114,11 +109,9 @@ class ForgeStackLogger:
 
     def agent_start(self, agent_name: str, round_num: int) -> None:
         """Log agent starting work."""
-        self._console.print(
-            f"[dim]Round {round_num}:[/dim] [bold]{agent_name}[/bold] working..."
-        )
+        self._console.print(f"[dim]Round {round_num}:[/dim] [bold]{agent_name}[/bold] working...")
 
-    def agent_complete(self, agent_name: str, score: Optional[float] = None) -> None:
+    def agent_complete(self, agent_name: str, score: float | None = None) -> None:
         """Log agent completing work."""
         if score is not None:
             self._console.print(
@@ -130,15 +123,12 @@ class ForgeStackLogger:
     def consensus_reached(self, score: float, threshold: float) -> None:
         """Log consensus being reached."""
         self._console.print(
-            f"\n[bold green]✓ Consensus reached![/bold green] "
-            f"Score {score:.2f} >= {threshold}"
+            f"\n[bold green]✓ Consensus reached![/bold green] Score {score:.2f} >= {threshold}"
         )
 
     def consensus_not_reached(self, score: float, threshold: float) -> None:
         """Log consensus not being reached."""
-        self._console.print(
-            f"[yellow]Score {score:.2f} < {threshold}. Revising...[/yellow]"
-        )
+        self._console.print(f"[yellow]Score {score:.2f} < {threshold}. Revising...[/yellow]")
 
     def session_complete(self, session_id: str) -> None:
         """Log session completion."""

@@ -1,14 +1,15 @@
 """Tests for ForgeStack agents."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
+
+import pytest
 
 from forgestack.agents.base import AgentContext, AgentResponse
+from forgestack.agents.critic import CriticAgent
 from forgestack.agents.generator import GeneratorAgent
-from forgestack.agents.critic import CriticAgent, CriticEvaluation
 from forgestack.agents.synthesizer import SynthesizerAgent
-from forgestack.config import ForgeStackConfig, AgentConfig, AgentsConfig
+from forgestack.config import AgentConfig, AgentsConfig, ForgeStackConfig
 
 
 @pytest.fixture
@@ -74,7 +75,7 @@ class TestCriticAgent:
         """Test parsing score from standard format."""
         content = "This is a review.\n\nSCORE: 8.5\n\nMore content."
 
-        with patch.object(CriticAgent, '__init__', lambda x, y: None):
+        with patch.object(CriticAgent, "__init__", lambda x, y: None):
             critic = CriticAgent.__new__(CriticAgent)
             score = critic._parse_score(content)
 
@@ -84,7 +85,7 @@ class TestCriticAgent:
         """Test parsing score with /10 format."""
         content = "Review content.\n\nScore: 9.2/10\n\nConclusion."
 
-        with patch.object(CriticAgent, '__init__', lambda x, y: None):
+        with patch.object(CriticAgent, "__init__", lambda x, y: None):
             critic = CriticAgent.__new__(CriticAgent)
             score = critic._parse_score(content)
 
@@ -94,7 +95,7 @@ class TestCriticAgent:
         """Test parsing score from bold markdown format."""
         content = "Analysis\n\n**Score**: 7.8\n\nDetails"
 
-        with patch.object(CriticAgent, '__init__', lambda x, y: None):
+        with patch.object(CriticAgent, "__init__", lambda x, y: None):
             critic = CriticAgent.__new__(CriticAgent)
             score = critic._parse_score(content)
 
@@ -104,7 +105,7 @@ class TestCriticAgent:
         """Test default score when no score found."""
         content = "Review without any score mentioned."
 
-        with patch.object(CriticAgent, '__init__', lambda x, y: None):
+        with patch.object(CriticAgent, "__init__", lambda x, y: None):
             critic = CriticAgent.__new__(CriticAgent)
             score = critic._parse_score(content)
 
@@ -114,7 +115,7 @@ class TestCriticAgent:
         """Test normalized score calculation."""
         response = AgentResponse(content="SCORE: 9.2", raw_response=None)
 
-        with patch.object(CriticAgent, '__init__', lambda x, y: None):
+        with patch.object(CriticAgent, "__init__", lambda x, y: None):
             critic = CriticAgent.__new__(CriticAgent)
             normalized = critic.get_normalized_score(response)
 
@@ -143,7 +144,7 @@ class TestGeneratorAgent:
     @pytest.mark.asyncio
     async def test_generator_builds_user_message(self, mock_config, sample_context):
         """Test that Generator builds correct user message."""
-        with patch.object(GeneratorAgent, '__init__', lambda x, y: None):
+        with patch.object(GeneratorAgent, "__init__", lambda x, y: None):
             generator = GeneratorAgent.__new__(GeneratorAgent)
             generator.config = mock_config
             generator.agent_config = mock_config.agents.generator
@@ -162,7 +163,7 @@ class TestGeneratorAgent:
         sample_context.feedback = "Add error handling"
         sample_context.round_number = 2
 
-        with patch.object(GeneratorAgent, '__init__', lambda x, y: None):
+        with patch.object(GeneratorAgent, "__init__", lambda x, y: None):
             generator = GeneratorAgent.__new__(GeneratorAgent)
             generator.config = mock_config
             generator.agent_config = mock_config.agents.generator
@@ -184,7 +185,7 @@ class TestSynthesizerAgent:
         sample_context.previous_output = "Final proposal"
         sample_context.feedback = "Approved with minor notes"
 
-        with patch.object(SynthesizerAgent, '__init__', lambda x, y: None):
+        with patch.object(SynthesizerAgent, "__init__", lambda x, y: None):
             synthesizer = SynthesizerAgent.__new__(SynthesizerAgent)
             synthesizer.config = mock_config
             synthesizer.agent_config = mock_config.agents.synthesizer

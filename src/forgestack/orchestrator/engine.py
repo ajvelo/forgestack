@@ -8,24 +8,22 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from forgestack.utils.formatting import format_agent_response
-
-logger = logging.getLogger(__name__)
-
-from forgestack.agents.generator import GeneratorAgent
-from forgestack.agents.critic import CriticAgent
-from forgestack.agents.synthesizer import SynthesizerAgent
 from forgestack.agents.base import AgentContext
+from forgestack.agents.critic import CriticAgent
+from forgestack.agents.generator import GeneratorAgent
+from forgestack.agents.synthesizer import SynthesizerAgent
+from forgestack.codebase.discovery import RepoDiscovery
 from forgestack.codebase.reader import CodebaseReader
 from forgestack.codebase.repos import RepoResolver
-from forgestack.codebase.discovery import RepoDiscovery
 from forgestack.config import ForgeStackConfig
 from forgestack.mcp.client import MCPClient
 from forgestack.orchestrator.critique_round import CritiqueResult, CritiqueRound
 from forgestack.persistence.database import SessionDatabase
-from forgestack.persistence.models import SessionRecord, AgentResponseRecord
+from forgestack.persistence.models import AgentResponseRecord, SessionRecord
+from forgestack.utils.formatting import format_agent_response
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -109,11 +107,13 @@ class ForgeStackEngine:
         session_id = str(uuid.uuid4())
         created_at = datetime.now()
 
-        self.console.print(Panel(
-            f"[dim]Session ID:[/dim] {session_id}",
-            title="[bold cyan]⚡ ForgeStack Session[/bold cyan]",
-            border_style="cyan",
-        ))
+        self.console.print(
+            Panel(
+                f"[dim]Session ID:[/dim] {session_id}",
+                title="[bold cyan]⚡ ForgeStack Session[/bold cyan]",
+                border_style="cyan",
+            )
+        )
 
         # Step 1: Resolve repository
         self.console.print("\n[bold blue]━━━ Setup ━━━[/bold blue]")
@@ -178,12 +178,14 @@ class ForgeStackEngine:
         )
         synthesis_response = await self.synthesizer.process(synthesis_context)
         self.console.print("[green]✓[/green] Synthesis complete")
-        self.console.print(format_agent_response(
-            agent_type="synthesizer",
-            content=synthesis_response.content,
-            round_number=critique_result.total_rounds,
-            score=critique_result.final_score,
-        ))
+        self.console.print(
+            format_agent_response(
+                agent_type="synthesizer",
+                content=synthesis_response.content,
+                round_number=critique_result.total_rounds,
+                score=critique_result.final_score,
+            )
+        )
 
         # Step 8: Persist session
         self.console.print("\n[dim]→[/dim] Saving session...")
@@ -233,18 +235,16 @@ class ForgeStackEngine:
 
         # Collect dependency manifests for common stacks
         manifest_files = [
-            "pubspec.yaml",      # Flutter / Dart
-            "package.json",      # JS / TS
-            "pyproject.toml",    # Python
-            "Cargo.toml",        # Rust
-            "go.mod",            # Go
+            "pubspec.yaml",  # Flutter / Dart
+            "package.json",  # JS / TS
+            "pyproject.toml",  # Python
+            "Cargo.toml",  # Rust
+            "go.mod",  # Go
         ]
         for manifest in manifest_files:
             contents = self.codebase_reader.read_file(repo_path / manifest)
             if contents:
-                summary_parts.append(
-                    f"\nDependencies ({manifest} excerpt):\n{contents[:1000]}"
-                )
+                summary_parts.append(f"\nDependencies ({manifest} excerpt):\n{contents[:1000]}")
                 break
 
         # Get lib structure
@@ -264,9 +264,7 @@ class ForgeStackEngine:
                 discovery_context = self.discovery.format_context_for_prompt(discovered)
                 if discovery_context:
                     summary_parts.append(f"\n{discovery_context}")
-                    self.console.print(
-                        f"  [dim]Found {len(discovered.repos)} related repos[/dim]"
-                    )
+                    self.console.print(f"  [dim]Found {len(discovered.repos)} related repos[/dim]")
             except Exception as e:
                 logger.debug(f"Discovery failed (non-fatal): {e}")
 
@@ -292,8 +290,8 @@ class ForgeStackEngine:
             # Common component locations across stacks
             candidate_component_dirs = [
                 ds_path / "lib" / "src" / "components",  # Flutter/Dart
-                ds_path / "src" / "components",          # JS/TS
-                ds_path / "components",                  # generic
+                ds_path / "src" / "components",  # JS/TS
+                ds_path / "components",  # generic
             ]
             for components_dir in candidate_component_dirs:
                 if components_dir.exists():
@@ -322,9 +320,23 @@ class ForgeStackEngine:
     def _is_ui_related(self, task_type: str, task_description: str) -> bool:
         """Check if the task is UI-related."""
         ui_keywords = [
-            "ui", "widget", "screen", "page", "component", "button",
-            "design", "layout", "theme", "style", "color", "icon",
-            "animation", "navigation", "dialog", "modal", "form",
+            "ui",
+            "widget",
+            "screen",
+            "page",
+            "component",
+            "button",
+            "design",
+            "layout",
+            "theme",
+            "style",
+            "color",
+            "icon",
+            "animation",
+            "navigation",
+            "dialog",
+            "modal",
+            "form",
         ]
 
         combined = f"{task_type} {task_description}".lower()

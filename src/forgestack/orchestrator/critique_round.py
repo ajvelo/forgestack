@@ -1,14 +1,15 @@
 """Critique round - manages the Generator/Critic feedback loop."""
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from rich.console import Console
 
 from forgestack.agents.base import AgentContext, AgentResponse
-from forgestack.agents.generator import GeneratorAgent
 from forgestack.agents.critic import CriticAgent
+from forgestack.agents.generator import GeneratorAgent
 from forgestack.config import ForgeStackConfig
 from forgestack.utils.formatting import format_agent_response
 
@@ -95,18 +96,24 @@ class CritiqueRound:
             context.round_number = round_num
 
             # Log round start
-            self.console.print(f"\n[bold blue]━━━ Round {round_num}/{self.max_rounds} ━━━[/bold blue]")
+            self.console.print(
+                f"\n[bold blue]━━━ Round {round_num}/{self.max_rounds} ━━━[/bold blue]"
+            )
 
             # Step 1: Generator produces/revises proposal
             self.console.print("[dim]Generator working...[/dim]")
             generator_response = await self.generator.process(context)
             proposal_hash = self._compute_proposal_hash(generator_response.content)
-            self.console.print(f"[green]✓[/green] Generator complete [dim](hash: {proposal_hash})[/dim]")
-            self.console.print(format_agent_response(
-                agent_type="generator",
-                content=generator_response.content,
-                round_number=round_num,
-            ))
+            self.console.print(
+                f"[green]✓[/green] Generator complete [dim](hash: {proposal_hash})[/dim]"
+            )
+            self.console.print(
+                format_agent_response(
+                    agent_type="generator",
+                    content=generator_response.content,
+                    round_number=round_num,
+                )
+            )
 
             # Step 2: Critic evaluates
             self.console.print("[dim]Critic evaluating...[/dim]")
@@ -125,12 +132,14 @@ class CritiqueRound:
             critic_response = await self.critic.process(critic_context)
             score = self.critic.get_normalized_score(critic_response)
             self.console.print("[green]✓[/green] Critic complete")
-            self.console.print(format_agent_response(
-                agent_type="critic",
-                content=critic_response.content,
-                round_number=round_num,
-                score=score,
-            ))
+            self.console.print(
+                format_agent_response(
+                    agent_type="critic",
+                    content=critic_response.content,
+                    round_number=round_num,
+                    score=score,
+                )
+            )
 
             # Record round result
             round_result = RoundResult(
@@ -148,13 +157,15 @@ class CritiqueRound:
             # gracefully with empty lists rather than reaching across the
             # abstraction to call `_parse_evaluation` ourselves.
             evaluation = getattr(critic_response, "evaluation", None)
-            evaluation_history.append({
-                "round": round_num,
-                "score": score,
-                "weaknesses": evaluation.weaknesses if evaluation else [],
-                "recommendations": evaluation.recommendations if evaluation else [],
-                "proposal_hash": proposal_hash,
-            })
+            evaluation_history.append(
+                {
+                    "round": round_num,
+                    "score": score,
+                    "weaknesses": evaluation.weaknesses if evaluation else [],
+                    "recommendations": evaluation.recommendations if evaluation else [],
+                    "proposal_hash": proposal_hash,
+                }
+            )
 
             # Log score delta if not first round
             if len(evaluation_history) > 1:
@@ -182,8 +193,7 @@ class CritiqueRound:
 
             # Prepare for next round with feedback
             self.console.print(
-                f"[yellow]Score {score:.2f} < {self.consensus_threshold}. "
-                f"Revising...[/yellow]"
+                f"[yellow]Score {score:.2f} < {self.consensus_threshold}. Revising...[/yellow]"
             )
             context = AgentContext(
                 repo_key=context.repo_key,

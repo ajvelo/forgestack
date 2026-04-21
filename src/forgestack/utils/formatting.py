@@ -1,16 +1,15 @@
 """Formatting utilities for ForgeStack output."""
 
+from typing import TYPE_CHECKING
+
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.table import Table
 from rich.syntax import Syntax
-
-from typing import TYPE_CHECKING
+from rich.table import Table
 
 if TYPE_CHECKING:
     from forgestack.orchestrator.engine import SessionResult
-    from forgestack.agents.base import AgentResponse
     from forgestack.persistence.models import SessionRecord
 
 
@@ -35,7 +34,9 @@ def format_session_result(result: "SessionResult") -> Panel:
         border = "yellow"
 
     # Format score with color
-    score_color = "green" if result.final_score >= 0.92 else "yellow" if result.final_score >= 0.82 else "red"
+    score_color = (
+        "green" if result.final_score >= 0.92 else "yellow" if result.final_score >= 0.82 else "red"
+    )
 
     header = (
         f"{status}\n"

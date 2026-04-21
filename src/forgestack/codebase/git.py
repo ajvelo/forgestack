@@ -5,9 +5,17 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from git import Repo, InvalidGitRepositoryError, GitCommandError
+from git import GitCommandError, InvalidGitRepositoryError, Repo
 
 logger = logging.getLogger(__name__)
+
+
+def _first_line_of_message(message: str | bytes) -> str:
+    """GitPython can return commit messages as bytes on some configs;
+    normalise to the first line of a string."""
+    if isinstance(message, bytes):
+        message = message.decode("utf-8", errors="replace")
+    return message.strip().split("\n")[0]
 
 
 @dataclass
@@ -73,11 +81,11 @@ class GitContext:
             # Detached HEAD state
             branch = f"detached@{repo.head.commit.hexsha[:7]}"
 
-        # Get modified files
-        modified = [item.a_path for item in repo.index.diff(None)]
+        # Get modified files (a_path can be None for some diff entries)
+        modified = [p for item in repo.index.diff(None) if (p := item.a_path) is not None]
 
         # Get staged files
-        staged = [item.a_path for item in repo.index.diff("HEAD")]
+        staged = [p for item in repo.index.diff("HEAD") if (p := item.a_path) is not None]
 
         # Get untracked files
         untracked = repo.untracked_files
@@ -109,7 +117,7 @@ class GitContext:
                 commits.append(
                     CommitInfo(
                         sha=commit.hexsha[:7],
-                        message=commit.message.strip().split("\n")[0],
+                        message=_first_line_of_message(commit.message),
                         author=commit.author.name or "Unknown",
                         date=datetime.fromtimestamp(commit.committed_date),
                     )
@@ -142,11 +150,12 @@ class GitContext:
                 diff = repo.head.commit.parents[0].diff(repo.head.commit)
 
             # Filter out items where both a_path and b_path are None
-            return [
-                item.a_path or item.b_path
-                for item in diff
-                if item.a_path or item.b_path
-            ]
+            changed: list[str] = []
+            for item in diff:
+                path = item.a_path or item.b_path
+                if path is not None:
+                    changed.append(path)
+            return changed
         except (IndexError, AttributeError, InvalidGitRepositoryError):
             return []
 
@@ -170,7 +179,7 @@ class GitContext:
                 commits.append(
                     CommitInfo(
                         sha=commit.hexsha[:7],
-                        message=commit.message.strip().split("\n")[0],
+                        message=_first_line_of_message(commit.message),
                         author=commit.author.name or "Unknown",
                         date=datetime.fromtimestamp(commit.committed_date),
                     )
