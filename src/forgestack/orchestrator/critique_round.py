@@ -142,13 +142,17 @@ class CritiqueRound:
             )
             result.rounds.append(round_result)
 
-            # Track evaluation history for next round's Critic context
-            evaluation = self.critic._parse_evaluation(critic_response.content)
+            # Track evaluation history for next round's Critic context.
+            # `critic.process()` attaches the parsed evaluation to the
+            # response; if the subclass didn't provide one, degrade
+            # gracefully with empty lists rather than reaching across the
+            # abstraction to call `_parse_evaluation` ourselves.
+            evaluation = getattr(critic_response, "evaluation", None)
             evaluation_history.append({
                 "round": round_num,
                 "score": score,
-                "weaknesses": evaluation.weaknesses,
-                "recommendations": evaluation.recommendations,
+                "weaknesses": evaluation.weaknesses if evaluation else [],
+                "recommendations": evaluation.recommendations if evaluation else [],
                 "proposal_hash": proposal_hash,
             })
 
