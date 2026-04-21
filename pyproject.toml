@@ -23,12 +23,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
 ]
-
-[project.urls]
-Homepage = "https://github.com/ajvelo/forgestack"
-Repository = "https://github.com/ajvelo/forgestack"
-Issues = "https://github.com/ajvelo/forgestack/issues"
-
 dependencies = [
     "anthropic>=0.39.0",
     "typer>=0.12.0",
@@ -46,7 +40,13 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "mypy>=1.7.0",
     "ruff>=0.1.0",
+    "types-PyYAML>=6.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/ajvelo/forgestack"
+Repository = "https://github.com/ajvelo/forgestack"
+Issues = "https://github.com/ajvelo/forgestack/issues"
 
 [project.scripts]
 forgestack = "forgestack.cli.main:app"
