@@ -7,9 +7,11 @@
 
 A CLI-only, multi-agent orchestration engine that uses Claude to analyze, critique, and improve codebases via structured multi-agent critique rounds.
 
+![ForgeStack demo](assets/demo.gif)
+
 ## Why?
 
-Single-shot LLM code suggestions are often plausible but subtly wrong — confidently proposing APIs that don't exist, ignoring existing patterns, or missing edge cases. ForgeStack borrows from how humans review code: one agent proposes, a second critiques with a calibrated rubric, and a third synthesises the result only once a consensus score is reached. The loop forces the model to revise rather than double down, and the final output is code-aware because agents read the target files via MCP before proposing.
+Single-shot LLM code suggestions are often plausible but subtly wrong: confidently proposing APIs that don't exist, ignoring existing patterns, or missing edge cases. ForgeStack borrows from how humans review code. One agent proposes, a second critiques with a calibrated rubric, and a third synthesises the result only once a consensus score is reached. The loop forces the model to revise rather than double down, and the final output is code-aware because agents read the target files via MCP before proposing.
 
 ## Overview
 
