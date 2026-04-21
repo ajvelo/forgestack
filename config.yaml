@@ -1,0 +1,74 @@
+# ForgeStack Configuration
+# Multi-agent Claude critique engine
+
+anthropic:
+  # Environment variable name containing the API key.
+  # The actual key must be set in your shell profile (e.g. ~/.zshrc):
+  #   export ANTHROPIC_API_KEY="sk-ant-xxxxx"
+  env_var: ANTHROPIC_API_KEY
+
+orchestrator:
+  # Maximum critique rounds before forcing synthesis
+  max_rounds: 3
+  # Consensus threshold required to exit the critique loop
+  # 0.85 = "Good" tier (8.5/10) - realistic for code proposals
+  consensus_threshold: 0.85
+
+agents:
+  generator:
+    # Creative model for proposing solutions
+    model: claude-sonnet-4-5-20250929
+    temperature: 0.7
+    max_tokens: 4096
+  critic:
+    # Analytical model for evaluation and scoring
+    model: claude-sonnet-4-5-20250929
+    temperature: 0.2
+    max_tokens: 2048
+  synthesizer:
+    # Opus for high-quality final synthesis
+    model: claude-opus-4-20250514
+    temperature: 0.4
+    max_tokens: 8192
+
+persistence:
+  # SQLite database for session history and learning
+  database_path: ./data/forgestack.db
+  enable_learning: true
+
+codebase:
+  # Add your repositories here. Each entry is:
+  #   <repo-key>: <absolute-or-home-relative-path>
+  # Examples:
+  #   my-app: ~/code/my-app
+  #   my-library: ~/code/my-library
+  repos: {}
+
+mcp:
+  # Global MCP server configuration.
+  # Servers are connected at startup and available across all sessions.
+  # Long timeout (10 min) since agent execution takes time for quality output.
+  timeout_seconds: 600
+  max_retries: 3
+  servers:
+    # Example: Dart language server (Flutter / Dart analysis)
+    dart:
+      command: dart
+      args: ["mcp-server"]
+      env: {}
+      optional: true
+
+    # Context7 for documentation lookup
+    context7:
+      command: npx
+      args: ["-y", "@upstash/context7-mcp"]
+      env: {}
+      optional: true
+
+# GitHub organization for auto-discovery (optional).
+# Set `github_org` to your org/user and `enabled: true` to let the Generator
+# discover related repos via the `gh` CLI and include them as context.
+discovery:
+  github_org: ""
+  enabled: false
+  cache_ttl_minutes: 60
